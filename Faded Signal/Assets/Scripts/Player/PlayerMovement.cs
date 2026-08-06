@@ -65,6 +65,7 @@ public class PlayerMovement : MonoBehaviour
         //handle drag
         if (grounded)
         {
+            //rb.linearDamping is just rb.drag, rb.drag is legacy feature though and is outdated
             rb.linearDamping = groundDrag;
         }
         else
@@ -143,8 +144,8 @@ public class PlayerMovement : MonoBehaviour
     private void SpeedControl()
     {
         //horizontal speed cap
-        currentVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
 
+        currentVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         //limits max velocity to moveSpeed
         if(currentVelocity.magnitude > currentMoveSpeed)
         {
@@ -154,6 +155,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         //fall speed cap(terminal velocity)
+
         currentFallSpeed = rb.linearVelocity.y;
         if(currentFallSpeed < -maxFallSpeed)
         {
@@ -164,7 +166,7 @@ public class PlayerMovement : MonoBehaviour
     //the calculation for jump height is (upwardVelocity^2 /(gravityMagnitude * 2)). I need custom gravity based on how high I want the player to jump(because I also want to control jump speed to make the player less floaty)
     private void CalculateJumpGravity()
     {   
-        //the calculation for upwards velocity is the force/divided by the mass of the rigidbody
+        //the calculation for upwards velocity is the impulse force/divided by the mass of the rigidbody
         jumpSpeed = jumpForce/rb.mass;
         //the total downward acceleration needed to reach jumpHeight
         jumpGravity = -(jumpSpeed * jumpSpeed) / (jumpHeight * 2f);
