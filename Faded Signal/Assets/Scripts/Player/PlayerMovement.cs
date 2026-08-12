@@ -3,46 +3,62 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] float walkSpeed;
-    [SerializeField] float sprintSpeed;
-    [SerializeField] float moveSpeedMultiplier;
-    [SerializeField] float groundDrag;
-    [SerializeField] float jumpHeight;
-    [SerializeField] float jumpForce;
-    [SerializeField] float jumpCooldown;
-    [SerializeField] float airborneControlMultiplier;
-    [SerializeField] float gravityMultiplier;
-    [SerializeField] float maxFallSpeed;
-    [SerializeField] bool playerHasDoubleJump;
+    [SerializeField] private float walkSpeed;
+    [SerializeField] private float sprintSpeed;
+    [SerializeField] private float moveSpeedMultiplier;
+    [SerializeField] private float groundDrag;
+    private float currentMoveSpeed;
+    private bool isSprinting;
+    private Vector3 moveDirection;
+    private Vector3 normalMoveDirection;
+    private Vector3 slopeMoveDirection;
+    private Vector3 currentVelocity;
+    private Vector3 maxVelocity;
 
-    float currentMoveSpeed;
-    float jumpSpeed;
-    float jumpGravity;
-    bool readyToJump;
-    bool isSprinting;
-    bool sprintJumpActive;
-    Vector3 moveDirection;
-    Vector3 currentVelocity;
-    Vector3 maxVelocity;
-    float currentFallSpeed;
 
+    [Header("Jumping")]
+    [SerializeField] private float jumpHeight;
+    [SerializeField] private float jumpForce;
+    [SerializeField] private float jumpCooldown;
+    [SerializeField] private float airborneControlMultiplier;
+    [SerializeField] private float gravityMultiplier;
+    [SerializeField] private float maxFallSpeed;
+    [SerializeField] private bool playerHasDoubleJump;
+    private float jumpSpeed;
+    private float jumpGravity;
+    private bool readyToJump;
+    private bool sprintJumpActive;
+    private float currentFallSpeed;
+
+
+    [Header("Crouching")]
+    [SerializeField] private float crouchSpeed;
 
 
     [Header("Keybinds")]
-    [SerializeField] KeyCode jumpKey;
-    [SerializeField] KeyCode sprintKey;
+    [SerializeField] private KeyCode jumpKey;
+    [SerializeField] private KeyCode sprintKey;
+    [SerializeField] private KeyCode crouchKey;
 
 
     [Header("Ground Check")]
-    [SerializeField] float playerHeight;
-    [SerializeField] LayerMask whatIsGround;
-    [SerializeField] float groundRaycastWiggleRoom;
-    bool grounded;
+    [SerializeField] private float playerHeight;
+    [SerializeField] private LayerMask whatIsGround;
+    [SerializeField] private float groundRaycastWiggleRoom;
+    private bool grounded;
 
-    [SerializeField] Transform playerOrientation;
 
-    float horizontalInput;
-    float verticalInput;
+    [Header("Slope Handling")]
+    [SerializeField] private float maxSlopeAngle;
+    private RaycastHit slopeHit;
+    private float currentGroundAngle;
+
+
+    [SerializeField] private Transform playerOrientation;
+
+
+    private float horizontalInput;
+    private float verticalInput;
 
 
     Rigidbody rb;
@@ -107,6 +123,12 @@ public class PlayerMovement : MonoBehaviour
             //allows player to continuously jump while holding down jump key
             Invoke(nameof(ResetJump), jumpCooldown);
         }
+
+        //crouching
+        if (Input.GetKey(crouchKey))
+        {
+
+        }
     }
 
     private void UpdateMoveSpeed()
@@ -124,7 +146,8 @@ public class PlayerMovement : MonoBehaviour
     private void MovePlayer()
     {
         //calcuate movement dir
-        moveDirection = (playerOrientation.forward * verticalInput) + playerOrientation.right * horizontalInput;
+        normalMoveDirection = (playerOrientation.forward * verticalInput) + playerOrientation.right * horizontalInput;
+        moveDirection = GetOnSlope() ? GetSlopeMoveDirection() : normalMoveDirection;
         moveDirection = moveDirection.normalized;
         
         //on ground
@@ -204,6 +227,21 @@ public class PlayerMovement : MonoBehaviour
             //the "-1" is because this is adding to the force of gravity(AddForce), if we want to multiply gravity by 3, we should AddForce of gravity*2, because gravity is already applied once by unity.
             rb.AddForce(Physics.gravity * (gravityMultiplier-1f), ForceMode.Acceleration);
         }
+    }
+
+    private bool GetOnSlope()
+    {
+        if(Physics.Raycast(transform.position, Vector3.down, out slopeHit, (playerHeight/2) + groundRaycastWiggleRoom, whatIsGround))
+        {
+            currentGroundAngle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return (currentGroundAngle < maxSlopeAngle) && (currentGroundAngle != 0);
+        }
+        return false;
+    }
+
+    private Vector3 GetSlopeMoveDirection()
+    {
+        return Vector3.ProjectOnPlane(normalMoveDirection, slopeHit.normal);
     }
 
 }

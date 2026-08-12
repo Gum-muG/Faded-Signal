@@ -313,6 +313,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3355511127239534620, guid: 91ff994017cd9634dbddbc26d7bd1338, type: 3}
+      propertyPath: maxSlopeAngle
+      value: 40
+      objectReference: {fileID: 0}
     - target: {fileID: 3761112445799340851, guid: 91ff994017cd9634dbddbc26d7bd1338, type: 3}
       propertyPath: m_Name
       value: Player
